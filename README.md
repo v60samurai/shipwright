@@ -25,25 +25,64 @@ Pick whichever fits your workflow. Both produce the same quality docs.
 ### Prerequisites
 
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code/overview) installed and working (`claude` command available in terminal)
-- A GitHub account (for cloning the repo)
+- Access to this private repository (you need to be a collaborator or the owner)
+- Authentication set up for GitHub (SSH key or Personal Access Token)
+
+### Authenticating with GitHub (Private Repo)
+
+This is a private repository. You need one of these auth methods configured before cloning:
+
+**Option A: SSH Key (recommended)**
+
+```bash
+# Check if you have an SSH key
+ls ~/.ssh/id_ed25519.pub 2>/dev/null || ls ~/.ssh/id_rsa.pub 2>/dev/null
+
+# If not, generate one
+ssh-keygen -t ed25519 -C "your_email@example.com"
+
+# Copy the public key
+cat ~/.ssh/id_ed25519.pub | pbcopy   # macOS
+cat ~/.ssh/id_ed25519.pub | xclip    # Linux
+
+# Add it to GitHub: Settings → SSH and GPG keys → New SSH key → paste
+# Test it works
+ssh -T git@github.com
+```
+
+**Option B: Personal Access Token (PAT)**
+
+```bash
+# Generate a token: GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)
+# Select scope: repo (full control of private repositories)
+# Copy the token — you'll use it as your password when cloning via HTTPS
+```
 
 ### Install
 
-**Option A: Clone and install locally (recommended)**
+**Option A: Clone via SSH and install locally (recommended)**
 
 ```bash
-# Clone the repo anywhere on your machine
-git clone https://github.com/v60samurai/shipwright.git ~/shipwright
-
-# Install as a Claude Code plugin
+git clone git@github.com:v60samurai/shipwright.git ~/shipwright
 claude plugin add ~/shipwright
 ```
 
-**Option B: Install directly from GitHub**
+**Option B: Clone via HTTPS with PAT**
 
 ```bash
-claude plugin add https://github.com/v60samurai/shipwright.git
+# When prompted for password, paste your Personal Access Token
+git clone https://github.com/v60samurai/shipwright.git ~/shipwright
+claude plugin add ~/shipwright
 ```
+
+**Option C: Clone via HTTPS with token inline**
+
+```bash
+git clone https://<YOUR_PAT>@github.com/v60samurai/shipwright.git ~/shipwright
+claude plugin add ~/shipwright
+```
+
+> **Note:** Replace `<YOUR_PAT>` with your actual Personal Access Token. Do not commit this token anywhere.
 
 ### Verify Installation
 
@@ -124,31 +163,34 @@ Works with any AI coding tool — Claude Code, Cursor, Windsurf, Copilot, or any
 
 ### Install
 
-**Option A: Clone and copy**
+Since this is a private repo, clone it first (using the same auth method from Route 1), then copy the prompt files:
+
+**Option A: Clone via SSH and copy**
 
 ```bash
-git clone https://github.com/v60samurai/shipwright.git ~/shipwright
+git clone git@github.com:v60samurai/shipwright.git ~/shipwright
 
-# Copy prompts to Claude Code's prompts directory
 mkdir -p ~/.claude/prompts
 cp ~/shipwright/phase1-architect.md ~/.claude/prompts/
 cp ~/shipwright/phase2-builder.md ~/.claude/prompts/
 ```
 
-**Option B: Download just the two files**
+**Option B: Clone via HTTPS and copy**
 
 ```bash
+git clone https://github.com/v60samurai/shipwright.git ~/shipwright
+
 mkdir -p ~/.claude/prompts
-curl -sL https://raw.githubusercontent.com/v60samurai/shipwright/main/phase1-architect.md > ~/.claude/prompts/phase1-architect.md
-curl -sL https://raw.githubusercontent.com/v60samurai/shipwright/main/phase2-builder.md > ~/.claude/prompts/phase2-builder.md
+cp ~/shipwright/phase1-architect.md ~/.claude/prompts/
+cp ~/shipwright/phase2-builder.md ~/.claude/prompts/
 ```
 
-**Option C: Use from any location**
+**Option C: Use directly from the cloned repo**
 
-Put the files anywhere. Just reference the full path when invoking:
+No need to copy — just reference the full path when invoking:
 
 ```
-Read /path/to/phase1-architect.md and docs/input/. Generate the product blueprint.
+Read ~/shipwright/phase1-architect.md and docs/input/. Generate the product blueprint.
 ```
 
 ### Using with Other AI Tools
