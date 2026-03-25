@@ -1,0 +1,13 @@
+{
+  "SessionStart": [
+    {
+      "matcher": "startup",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "if [ -d \"docs/input\" ] && [ \"$(ls -A docs/input 2>/dev/null)\" ] && [ ! -f \"docs/product-blueprint.yaml\" ]; then echo '[shipwright] Found docs in docs/input/ but no blueprint. Run /shipwright:blueprint to generate one.'; fi"
+        }
+      ]
+    }
+  ]
+}

@@ -1,98 +1,115 @@
 # Shipwright
 
-> Two prompts. Any product. Production-grade build docs in minutes.
+> Two commands. Any product. Production-grade build docs in minutes.
 
-Shipwright is a two-phase prompt system for Claude Code (or any AI coding tool) that generates detailed implementation docs for any product -- from a napkin sketch to a full PRD. Feed it your idea, get back the exact docs a vibe coder or experienced developer needs to build the entire thing.
+Shipwright is a Claude Code plugin that generates detailed implementation docs for any product — from a napkin sketch to a full PRD. Feed it your idea, get back the exact docs a vibe coder or experienced developer needs to build the entire thing.
+
+**Skill-aware:** Shipwright detects your installed Claude Code plugins and embeds skill recommendations into every session. If you have `vercel`, `superpowers`, `frontend-design`, or any other plugin — Shipwright tells you exactly when to use each skill during your build.
 
 ---
 
-## The Problem
+## Install
 
-Building with AI requires incredibly detailed implementation docs -- architecture diagrams, database schemas, code patterns, session-by-session build sequences. Without them, AI produces mediocre, inconsistent output. Writing these docs manually takes days and deep engineering experience.
+```bash
+claude plugin add /path/to/shipwright
+```
 
-## The Solution
+Or clone and install:
+```bash
+git clone https://github.com/v60samurai/shipwright.git
+claude plugin add ./shipwright
+```
 
-Shipwright splits the work into two phases:
+---
 
-**Phase 1: The Architect** reads whatever you have (PRD, rough idea, user journey, brand guide, existing code) and produces a structured **Product Blueprint** -- a normalized YAML spec that captures every technical and design decision.
+## Commands
 
-**Phase 2: The Builder** reads the Product Blueprint and generates 2-4 production-grade build docs:
-
-| Doc | Always? | What It Is |
-|-----|---------|------------|
-| `CLAUDE.md` | Yes | Project instructions for Claude Code -- stack, conventions, file structure |
-| `Implementation-Guide.md` | Yes | Architecture, database schema, code patterns, edge cases, error handling |
-| `Session-Playbook.md` | Yes | Linear build sequence with exact Claude Code prompts, test commands, commit messages |
-| `Design-System.md` | Conditional | Typography, colors, component rules, voice and copy system |
-| `Polish-Ship-Guide.md` | Conditional | Demo prep, seed data, delight layer, ship checklist |
+| Command | What It Does |
+|---------|-------------|
+| `/shipwright:blueprint` | Phase 1: reads your input, asks questions, generates Product Blueprint |
+| `/shipwright:build` | Phase 2: reads blueprint, generates CLAUDE.md + Implementation Guide + Session Playbook + more |
+| `/shipwright:status` | Show session progress (done/next/pending) |
+| `/shipwright:session N` | Load a specific session with full context, ready to build |
+| `/shipwright:reverse` | Reverse-engineer a blueprint from an existing codebase |
 
 ---
 
 ## Quick Start
 
-### 1. Install the prompts
-
-Copy the two prompt files to your Claude Code prompts directory:
+### 1. Prepare your input
 
 ```bash
-mkdir -p ~/.claude/prompts
-cp phase1-architect.md ~/.claude/prompts/
-cp phase2-builder.md ~/.claude/prompts/
+mkdir -p docs/input
 ```
 
-### 2. Prepare your input
+Drop whatever you have into `docs/input/`:
+- A PRD, rough idea, user journey, brand guide, wireframes, technical spec, pitch deck, or braindump
+- Any level of completeness works — a 3-sentence idea is fine, a 40-page PRD is fine
 
-Create a new project and drop whatever you have into `docs/input/`:
-
-```bash
-mkdir -p my-project/docs/input
-```
-
-Put any of these into `docs/input/`:
-- A PRD (product requirements document)
-- A rough idea written in plain English
-- User journey maps
-- Brand guidelines
-- Wireframe descriptions
-- Technical specs
-- Competitor analysis notes
-- Pain points and user research
-- An existing codebase you want to build on top of
-
-**Any level of completeness works.** A 3-sentence idea is fine. A 40-page PRD is fine. Shipwright adapts.
-
-### 3. Run Phase 1: Generate the Blueprint
-
-Open Claude Code in your project directory:
+### 2. Generate the Blueprint
 
 ```
-Read ~/.claude/prompts/phase1-architect.md and the files in docs/input/. Generate the product blueprint.
+/shipwright:blueprint
 ```
 
-Phase 1 will:
-1. Read all your input files
-2. Show a completeness report (what it found, what's missing)
-3. Ask 1-3 rounds of focused questions to fill gaps
-4. Make opinionated defaults for anything you say "you decide"
-5. Output `docs/product-blueprint.yaml` -- a complete, structured spec
+Shipwright reads your input, shows a completeness report, asks 1-3 rounds of focused questions, and outputs `docs/product-blueprint.yaml`.
 
-**Review the blueprint.** Edit anything that doesn't match your vision -- especially `features.core`, `data_model`, and `stack`.
+Review the blueprint. Edit anything that doesn't match your vision.
 
-### 4. Run Phase 2: Generate the Build Docs
+### 3. Generate the Build Docs
 
 ```
-Read ~/.claude/prompts/phase2-builder.md and docs/product-blueprint.yaml. Generate the build docs.
+/shipwright:build
 ```
 
-Phase 2 generates all the docs. This takes a few minutes.
+Generates:
 
-### 5. Build
+| Doc | Always? | Purpose |
+|-----|---------|---------|
+| `CLAUDE.md` | Yes | Project instructions for Claude Code |
+| `Implementation-Guide.md` | Yes | Architecture, schema, code patterns, edge cases |
+| `Session-Playbook.md` | Yes | Linear build sequence with exact prompts + skill recommendations |
+| `Design-System.md` | Conditional | Typography, colors, components, voice |
+| `Polish-Ship-Guide.md` | Conditional | Demo prep, delight, ship checklist |
 
-Open the Session Playbook and follow it session by session. Each session has:
-- **Read:** which doc sections to reference
-- **Claude Code prompt:** exact prompt to copy-paste
-- **Test:** exact commands to verify
-- **Commit:** commit message
+### 4. Build
+
+Load the first session:
+
+```
+/shipwright:session 1
+```
+
+Or check your progress anytime:
+
+```
+/shipwright:status
+```
+
+---
+
+## Skill-Aware Sessions
+
+Shipwright detects your installed plugins and embeds relevant skill recommendations into each session:
+
+```markdown
+## Session 7: Dashboard Home Screen (60-90 min)
+
+**Skills for this session:**
+- Run `frontend-design` skill for all UI components
+- `react-best-practices` will auto-trigger on TSX edits
+- If using shadcn: invoke `shadcn` skill for component patterns
+- If stuck: `/debug` to systematically diagnose
+
+**Claude Code prompt:**
+...
+
+**After building:**
+- Run `/review` to check for issues
+- Run `/commit` to create an atomic commit
+```
+
+Only skills you actually have installed are recommended — no phantom suggestions.
 
 ---
 
@@ -117,106 +134,77 @@ Anything. The Product Blueprint schema supports:
 
 ---
 
-## File Reference
+## Reverse Engineering
+
+Already have a codebase? Generate docs for it:
+
+```
+/shipwright:reverse
+```
+
+Reads your code, package.json, schema files, config — and produces a Product Blueprint. Then run `/shipwright:build` to generate the docs.
+
+---
+
+## Plugin Structure
 
 ```
 shipwright/
-  phase1-architect.md     # Phase 1 prompt: input -> Product Blueprint
-  phase2-builder.md       # Phase 2 prompt: blueprint -> build docs
-  design-spec.md          # Design spec documenting the system
-  LICENSE                 # MIT
-  README.md               # You are here
+├── .claude-plugin/
+│   └── plugin.json              # Plugin metadata
+├── commands/
+│   ├── blueprint.md             # /shipwright:blueprint
+│   ├── build.md                 # /shipwright:build
+│   ├── status.md                # /shipwright:status
+│   ├── session.md               # /shipwright:session N
+│   └── reverse.md               # /shipwright:reverse
+├── skills/
+│   └── shipwright/
+│       ├── SKILL.md             # Auto-trigger skill
+│       └── references/
+│           ├── blueprint-schema.md    # Full YAML schema
+│           ├── inference-rules.md     # Gap-filling inference rules
+│           ├── skill-mapping.md       # Session type → skill recommendations
+│           └── generator-templates.md # Doc generator templates
+├── scripts/
+│   ├── detect-skills.sh         # Scans installed plugins
+│   └── validate-blueprint.sh    # Validates blueprint completeness
+├── hooks/
+│   └── hooks.json               # Auto-detect docs/input/ on session start
+├── phase1-architect.md          # Standalone prompt (for non-plugin use)
+├── phase2-builder.md            # Standalone prompt (for non-plugin use)
+├── LICENSE
+└── README.md
 ```
-
-### phase1-architect.md (The Architect)
-
-The Architect's job is normalization. It takes messy, incomplete, or overly ambitious input and produces a precise, buildable Product Blueprint.
-
-Key behaviors:
-- **Reads anything:** PRDs, rough notes, existing code, wireframes, pitch decks
-- **Assesses completeness:** scores each blueprint section as complete, partial, or missing
-- **Asks focused questions:** max 3 rounds, multiple-choice preferred, groups related topics
-- **Infers intelligently:** ~40 inference rules for filling gaps (e.g., B2C app with no interface specified defaults to PWA + mobile-first)
-- **Validates before output:** every entity has fields, every feature has acceptance criteria, every external service has a degradation strategy
-
-### phase2-builder.md (The Builder)
-
-The Builder's job is generation. It reads the structured blueprint and produces docs so detailed that an AI can build the entire system without asking questions.
-
-Key behaviors:
-- **Code is copy-paste ready:** real function signatures, real error handling, real types. Never pseudocode.
-- **Every session has a test:** not "verify it works" -- exact commands and expected output
-- **Deployment checkpoints as gates:** "do not proceed until X works on live infrastructure"
-- **Stack-native:** Python backend gets Python examples. TypeScript gets TypeScript idioms.
-- **Opinionated:** one way to do things. The right way. No "you could also..."
-
-### Product Blueprint Schema
-
-The blueprint is a YAML file with these sections:
-
-| Section | What It Captures |
-|---------|-----------------|
-| `product` | Name, tagline, category, stage |
-| `users` | Primary persona, pain points, usage context |
-| `interfaces` | Every interface (web, mobile, bot, CLI, API, etc.) with platform-specific config |
-| `architecture` | Pattern, data flow, external services, background jobs, realtime needs |
-| `stack` | Frontend, backend, database, auth, hosting, AI, key libraries |
-| `data_model` | Entities with fields, relationships, access patterns, enums, views, RLS |
-| `features` | Core features with acceptance criteria, deferred features |
-| `user_journeys` | Step-by-step flows through the product |
-| `design` | Aesthetic direction, colors, typography, component rules |
-| `resilience` | Degradation table, retry strategies, data loss prevention |
-| `voice` | Personality, tone examples, error/empty state copy, aha moment |
-| `demo` | Seed data, demo script, pre-demo checklist |
-| `env_vars` | Every environment variable per environment |
-| `testing` | Strategy, frameworks, critical paths |
-| `deployment` | Strategy, environments, pipeline, checkpoints |
-| `constraints` | Time, team, forbidden patterns, hard requirements |
 
 ---
 
-## Examples
+## Standalone Use (Without Plugin)
 
-### Minimal input (napkin sketch)
+If you prefer raw prompts over a plugin:
 
-```
-docs/input/idea.md:
-  "I want to build a Telegram bot that tracks my reading habits.
-   I send it a book title when I start/finish, it tracks my stats.
-   Simple web dashboard to see my reading history and streaks."
-```
-
-Phase 1 will infer: bot-telegram + web-app, Python backend, Supabase, dark mode dashboard, etc. It'll ask 2-3 questions about features and design preference.
-
-### Detailed input (full PRD)
-
-```
-docs/input/prd.md           # 20-page PRD with user stories
-docs/input/brand-guide.md   # Typography, colors, voice
-docs/input/user-research.md # Interview transcripts, pain points
-docs/input/wireframes.md    # Screen descriptions
+```bash
+mkdir -p ~/.claude/prompts
+cp phase1-architect.md ~/.claude/prompts/
+cp phase2-builder.md ~/.claude/prompts/
 ```
 
-Phase 1 will map everything directly, confirm a few technical decisions, and output the blueprint with 0-1 rounds of questions.
-
----
-
-## Tips
-
-- **Edit the blueprint.** Phase 1 is smart but not omniscient. Review `product-blueprint.yaml` before running Phase 2, especially the `features.core` and `data_model` sections.
-- **"You decide" is valid.** If Phase 1 asks a question you don't have an opinion on, say "you decide." It'll pick a sensible default and explain why.
-- **Re-run Phase 2 after edits.** Changed your mind about the stack? Edit the blueprint and re-run Phase 2. The docs regenerate in minutes.
-- **Session Playbook is linear.** Follow it in order. Don't skip sessions. Don't jump ahead. Each session builds on the previous one.
-- **Checkpoints are gates.** When the playbook says "do not proceed until X works," it means it. Bugs found later are 10x harder to fix than bugs found at checkpoints.
+Then in any project:
+```
+Read ~/.claude/prompts/phase1-architect.md and docs/input/. Generate the product blueprint.
+```
+```
+Read ~/.claude/prompts/phase2-builder.md and docs/product-blueprint.yaml. Generate the build docs.
+```
 
 ---
 
 ## Origin
 
-Shipwright was extracted from the doc system that powered the build of [HustlrAI](https://github.com/harshitbadiger) -- a Telegram-first CRM built in 10 hours with Claude Code. The Implementation Guide + Session Playbook pattern proved that with the right docs, anyone can build a production-grade app with AI. Shipwright templatizes that pattern for any product.
+Shipwright was extracted from the doc system that powered [HustlrAI](https://github.com/harshitbadiger) — a Telegram-first CRM built in 10 hours with Claude Code. The Implementation Guide + Session Playbook pattern proved that with the right docs, anyone can build a production-grade app with AI. Shipwright templatizes that approach for any product.
 
 ---
 
 ## License
 
-MIT -- see [LICENSE](LICENSE).
+MIT — see [LICENSE](LICENSE).

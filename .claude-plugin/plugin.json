@@ -1,0 +1,8 @@
+{
+  "name": "shipwright",
+  "version": "1.0.0",
+  "description": "Generate production-grade build docs for any product. Two phases: Blueprint (normalize your idea) and Build (generate Implementation Guide, Session Playbook, Design System, and more).",
+  "author": {
+    "name": "Harshit Badiger"
+  }
+}
