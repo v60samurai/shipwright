@@ -22,12 +22,55 @@ Pick whichever fits your workflow. Both produce the same quality docs.
 
 ## Route 1: Plugin (Full Experience)
 
+### Prerequisites
+
+- [Claude Code](https://docs.anthropic.com/en/docs/claude-code/overview) installed and working (`claude` command available in terminal)
+- A GitHub account (for cloning the repo)
+
 ### Install
 
+**Option A: Clone and install locally (recommended)**
+
 ```bash
-git clone https://github.com/v60samurai/shipwright.git
-claude plugin add ./shipwright
+# Clone the repo anywhere on your machine
+git clone https://github.com/v60samurai/shipwright.git ~/shipwright
+
+# Install as a Claude Code plugin
+claude plugin add ~/shipwright
 ```
+
+**Option B: Install directly from GitHub**
+
+```bash
+claude plugin add https://github.com/v60samurai/shipwright.git
+```
+
+### Verify Installation
+
+Open Claude Code in any project and run:
+
+```
+/shipwright:status
+```
+
+If you see a response (even "no session playbook found"), the plugin is installed correctly. If the command isn't recognized, restart Claude Code and try again.
+
+### Uninstall
+
+```bash
+claude plugin remove shipwright
+```
+
+### How Plugins Work in Claude Code
+
+Claude Code plugins extend Claude's capabilities with custom commands, skills, and hooks:
+
+- **Commands** (`/shipwright:blueprint`, etc.) are slash commands you type in the Claude Code prompt. They load specialized instructions that guide Claude through a specific workflow.
+- **Skills** auto-trigger when Claude detects relevant context. The Shipwright skill activates when you mention "generate build docs" or "implementation guide" without using a slash command.
+- **Hooks** run automatically on events. Shipwright's hook fires on session start — if it finds `docs/input/` without a blueprint, it reminds you to run `/shipwright:blueprint`.
+- **Scripts** are shell utilities the plugin uses internally (skill detection, blueprint validation). You don't run these directly.
+
+Plugins are local — they run on your machine, not in the cloud. The plugin reads your files and generates docs in your project directory.
 
 ### Commands
 
@@ -77,17 +120,45 @@ Only skills you actually have installed are recommended — no phantom suggestio
 
 ## Route 2: Standalone Prompts (Universal)
 
-Works with any AI coding tool — Claude Code, Cursor, Windsurf, Copilot, or anything that reads markdown prompts.
+Works with any AI coding tool — Claude Code, Cursor, Windsurf, Copilot, or anything that reads markdown prompts. No plugin system required.
 
 ### Install
 
+**Option A: Clone and copy**
+
 ```bash
+git clone https://github.com/v60samurai/shipwright.git ~/shipwright
+
+# Copy prompts to Claude Code's prompts directory
 mkdir -p ~/.claude/prompts
-cp phase1-architect.md ~/.claude/prompts/
-cp phase2-builder.md ~/.claude/prompts/
+cp ~/shipwright/phase1-architect.md ~/.claude/prompts/
+cp ~/shipwright/phase2-builder.md ~/.claude/prompts/
 ```
 
-Or put them anywhere you like — just reference the path when invoking.
+**Option B: Download just the two files**
+
+```bash
+mkdir -p ~/.claude/prompts
+curl -sL https://raw.githubusercontent.com/v60samurai/shipwright/main/phase1-architect.md > ~/.claude/prompts/phase1-architect.md
+curl -sL https://raw.githubusercontent.com/v60samurai/shipwright/main/phase2-builder.md > ~/.claude/prompts/phase2-builder.md
+```
+
+**Option C: Use from any location**
+
+Put the files anywhere. Just reference the full path when invoking:
+
+```
+Read /path/to/phase1-architect.md and docs/input/. Generate the product blueprint.
+```
+
+### Using with Other AI Tools
+
+The standalone prompts work with any tool that can read a file and follow instructions:
+
+- **Cursor:** Open the prompt file in a tab, paste your input, ask Cursor to follow the instructions
+- **Windsurf:** Same approach — reference the prompt file and your input docs
+- **ChatGPT/Claude web:** Copy-paste the prompt into the conversation, then paste your PRD/idea
+- **Any coding agent:** Point it at the prompt file and your input directory
 
 ### Workflow
 
