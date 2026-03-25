@@ -1,96 +1,58 @@
 # Shipwright
 
-> Two commands. Any product. Production-grade build docs in minutes.
+> Any idea. Any product. Production-grade build docs in minutes.
 
-Shipwright is a Claude Code plugin that generates detailed implementation docs for any product — from a napkin sketch to a full PRD. Feed it your idea, get back the exact docs a vibe coder or experienced developer needs to build the entire thing.
+Shipwright generates detailed implementation docs for any product — from a napkin sketch to a full PRD. Feed it your idea, get back the exact docs a vibe coder or experienced developer needs to build the entire thing.
 
-**Skill-aware:** Shipwright detects your installed Claude Code plugins and embeds skill recommendations into every session. If you have `vercel`, `superpowers`, `frontend-design`, or any other plugin — Shipwright tells you exactly when to use each skill during your build.
+**Two ways to use it:**
+
+| | Plugin (Recommended) | Standalone Prompts |
+|-|---------------------|-------------------|
+| **Install** | `claude plugin add ./shipwright` | Copy 2 files to `~/.claude/prompts/` |
+| **Invoke** | `/shipwright:blueprint` | Paste a one-liner into Claude Code |
+| **Skill-aware** | Yes — detects installed plugins, embeds skill recs per session | No — generic prompts only |
+| **Session tracking** | `/shipwright:status` shows progress | Manual (check git log) |
+| **Session loader** | `/shipwright:session 3` loads full context | Manual (scroll the playbook) |
+| **Reverse-engineer** | `/shipwright:reverse` reads existing code | Not available |
+| **Works with** | Claude Code only | Any AI tool (Claude Code, Cursor, Windsurf, etc.) |
+
+Pick whichever fits your workflow. Both produce the same quality docs.
 
 ---
 
-## Install
+## Route 1: Plugin (Full Experience)
 
-```bash
-claude plugin add /path/to/shipwright
-```
+### Install
 
-Or clone and install:
 ```bash
 git clone https://github.com/v60samurai/shipwright.git
 claude plugin add ./shipwright
 ```
 
----
-
-## Commands
+### Commands
 
 | Command | What It Does |
 |---------|-------------|
 | `/shipwright:blueprint` | Phase 1: reads your input, asks questions, generates Product Blueprint |
 | `/shipwright:build` | Phase 2: reads blueprint, generates CLAUDE.md + Implementation Guide + Session Playbook + more |
-| `/shipwright:status` | Show session progress (done/next/pending) |
+| `/shipwright:status` | Show session progress (done/next/pending via git log) |
 | `/shipwright:session N` | Load a specific session with full context, ready to build |
 | `/shipwright:reverse` | Reverse-engineer a blueprint from an existing codebase |
 
----
-
-## Quick Start
-
-### 1. Prepare your input
-
-```bash
-mkdir -p docs/input
-```
-
-Drop whatever you have into `docs/input/`:
-- A PRD, rough idea, user journey, brand guide, wireframes, technical spec, pitch deck, or braindump
-- Any level of completeness works — a 3-sentence idea is fine, a 40-page PRD is fine
-
-### 2. Generate the Blueprint
+### Workflow
 
 ```
-/shipwright:blueprint
+1. mkdir -p docs/input && [drop your PRD/idea/notes there]
+2. /shipwright:blueprint        → generates docs/product-blueprint.yaml
+3. Review the blueprint, edit if needed
+4. /shipwright:build            → generates all build docs
+5. /shipwright:session 1        → load first session, start building
+6. /shipwright:status           → check progress anytime
 ```
 
-Shipwright reads your input, shows a completeness report, asks 1-3 rounds of focused questions, and outputs `docs/product-blueprint.yaml`.
+### Skill-Aware Sessions
 
-Review the blueprint. Edit anything that doesn't match your vision.
-
-### 3. Generate the Build Docs
-
-```
-/shipwright:build
-```
-
-Generates:
-
-| Doc | Always? | Purpose |
-|-----|---------|---------|
-| `CLAUDE.md` | Yes | Project instructions for Claude Code |
-| `Implementation-Guide.md` | Yes | Architecture, schema, code patterns, edge cases |
-| `Session-Playbook.md` | Yes | Linear build sequence with exact prompts + skill recommendations |
-| `Design-System.md` | Conditional | Typography, colors, components, voice |
-| `Polish-Ship-Guide.md` | Conditional | Demo prep, delight, ship checklist |
-
-### 4. Build
-
-Load the first session:
-
-```
-/shipwright:session 1
-```
-
-Or check your progress anytime:
-
-```
-/shipwright:status
-```
-
----
-
-## Skill-Aware Sessions
-
-Shipwright detects your installed plugins and embeds relevant skill recommendations into each session:
+The plugin detects your installed Claude Code plugins and weaves relevant skills into each session:
 
 ```markdown
 ## Session 7: Dashboard Home Screen (60-90 min)
@@ -113,9 +75,99 @@ Only skills you actually have installed are recommended — no phantom suggestio
 
 ---
 
+## Route 2: Standalone Prompts (Universal)
+
+Works with any AI coding tool — Claude Code, Cursor, Windsurf, Copilot, or anything that reads markdown prompts.
+
+### Install
+
+```bash
+mkdir -p ~/.claude/prompts
+cp phase1-architect.md ~/.claude/prompts/
+cp phase2-builder.md ~/.claude/prompts/
+```
+
+Or put them anywhere you like — just reference the path when invoking.
+
+### Workflow
+
+```bash
+# 1. Create project and add your input
+mkdir -p my-project/docs/input
+# Drop your PRD/idea/notes into docs/input/
+
+# 2. Generate the blueprint (Phase 1)
+# In Claude Code or any AI tool:
+"Read ~/.claude/prompts/phase1-architect.md and the files in docs/input/. Generate the product blueprint."
+
+# 3. Review docs/product-blueprint.yaml, edit if needed
+
+# 4. Generate the build docs (Phase 2)
+"Read ~/.claude/prompts/phase2-builder.md and docs/product-blueprint.yaml. Generate the build docs."
+
+# 5. Build by following docs/Session-Playbook.md session by session
+```
+
+### What the Standalone Prompts Include
+
+**`phase1-architect.md`** (The Architect)
+- Reads any input quality (3-sentence idea to 40-page PRD)
+- Completeness scoring per blueprint section
+- ~40 inference rules for filling gaps intelligently
+- Max 3 rounds of focused questions
+- Field validation rules (required vs conditional vs optional)
+- Outputs normalized Product Blueprint YAML
+
+**`phase2-builder.md`** (The Builder)
+- Full templates for each generated doc
+- Code-level quality rules (copy-paste ready, never pseudocode)
+- Session generation algorithm with time estimation
+- Conditional doc generation (Design System, Polish Guide)
+- 10 meta quality rules enforced across all output
+
+---
+
+## The Two-Phase Pipeline (Both Routes)
+
+Regardless of which route you use, the pipeline is the same:
+
+```
+YOUR INPUT (any quality)
+    │
+    ▼
+Phase 1: The Architect
+    │  Reads docs/input/*
+    │  Scores completeness
+    │  Asks max 3 rounds of questions
+    │  Infers missing fields with opinionated defaults
+    │  Validates all fields
+    │
+    ▼
+Product Blueprint (docs/product-blueprint.yaml)
+    │  Normalized intermediate format
+    │  Every field has a value
+    │  Editable before Phase 2
+    │
+    ▼
+Phase 2: The Builder
+    │  Reads blueprint
+    │  Detects installed skills (plugin only)
+    │  Generates docs adapted to the product
+    │
+    ▼
+Output Docs
+    ├── CLAUDE.md                    (always)
+    ├── Implementation-Guide.md      (always)
+    ├── Session-Playbook.md          (always, skill-aware in plugin mode)
+    ├── Design-System.md             (conditional — if product has UI)
+    └── Polish-Ship-Guide.md         (conditional — if product is user-facing)
+```
+
+---
+
 ## What Products Can This Build?
 
-Anything. The Product Blueprint schema supports:
+Anything that can be built with code:
 
 | Category | Examples |
 |----------|----------|
@@ -134,22 +186,12 @@ Anything. The Product Blueprint schema supports:
 
 ---
 
-## Reverse Engineering
-
-Already have a codebase? Generate docs for it:
-
-```
-/shipwright:reverse
-```
-
-Reads your code, package.json, schema files, config — and produces a Product Blueprint. Then run `/shipwright:build` to generate the docs.
-
----
-
-## Plugin Structure
+## Project Structure
 
 ```
 shipwright/
+│
+├── # Plugin (Route 1)
 ├── .claude-plugin/
 │   └── plugin.json              # Plugin metadata
 ├── commands/
@@ -162,40 +204,38 @@ shipwright/
 │   └── shipwright/
 │       ├── SKILL.md             # Auto-trigger skill
 │       └── references/
-│           ├── blueprint-schema.md    # Full YAML schema
-│           ├── inference-rules.md     # Gap-filling inference rules
+│           ├── blueprint-schema.md    # Full YAML schema + validation rules
+│           ├── inference-rules.md     # All inference rules for filling gaps
 │           ├── skill-mapping.md       # Session type → skill recommendations
-│           └── generator-templates.md # Doc generator templates
+│           └── generator-templates.md # Doc generator templates + quality rules
 ├── scripts/
-│   ├── detect-skills.sh         # Scans installed plugins
-│   └── validate-blueprint.sh    # Validates blueprint completeness
+│   ├── detect-skills.sh         # Scans installed plugins for skill-aware sessions
+│   └── validate-blueprint.sh    # Validates blueprint YAML completeness
 ├── hooks/
 │   └── hooks.json               # Auto-detect docs/input/ on session start
-├── phase1-architect.md          # Standalone prompt (for non-plugin use)
-├── phase2-builder.md            # Standalone prompt (for non-plugin use)
-├── LICENSE
-└── README.md
+│
+├── # Standalone Prompts (Route 2)
+├── phase1-architect.md          # Complete Phase 1 prompt — works with any AI tool
+├── phase2-builder.md            # Complete Phase 2 prompt — works with any AI tool
+│
+├── # Docs
+├── design-spec.md               # System design spec
+├── docs/
+│   └── superpowers/specs/       # Plugin conversion spec
+│
+├── LICENSE                      # MIT
+└── README.md                    # You are here
 ```
 
 ---
 
-## Standalone Use (Without Plugin)
+## Tips
 
-If you prefer raw prompts over a plugin:
-
-```bash
-mkdir -p ~/.claude/prompts
-cp phase1-architect.md ~/.claude/prompts/
-cp phase2-builder.md ~/.claude/prompts/
-```
-
-Then in any project:
-```
-Read ~/.claude/prompts/phase1-architect.md and docs/input/. Generate the product blueprint.
-```
-```
-Read ~/.claude/prompts/phase2-builder.md and docs/product-blueprint.yaml. Generate the build docs.
-```
+- **Edit the blueprint.** Phase 1 is smart but not omniscient. Review `product-blueprint.yaml` before Phase 2.
+- **"You decide" is valid.** If Phase 1 asks something you don't care about, say "you decide." It picks a sensible default.
+- **Re-run Phase 2 after edits.** Changed your mind? Edit the blueprint, re-run. Docs regenerate in minutes.
+- **Checkpoints are gates.** When the playbook says "do not proceed until X works," it means it.
+- **Session Playbook is linear.** Follow it in order. Each session builds on the previous one.
 
 ---
 
