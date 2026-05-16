@@ -384,6 +384,7 @@ user_journeys:
 design:
   generate_design_system: true   # Set false for pure APIs, CLIs with no visual design needs
   generate_polish_guide: true    # Set false for internal tools, pure APIs
+  persona_file_path: ""          # If product has a file-based AI persona, set path e.g. src/persona/STUDIO.md. NEVER use CLAUDE.md — that name is reserved for Claude Code developer instructions.
   aesthetic_direction: ""        # References ("like Linear"), anti-references ("not like Salesforce"), mood
   color_strategy: ""             # e.g., "dark mode only, zinc base, persimmon accent"
   typography_strategy: ""        # e.g., "geometric sans for UI, serif for editorial, mono for data"

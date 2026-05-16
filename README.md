@@ -8,7 +8,7 @@ Shipwright generates detailed implementation docs for any product — from a nap
 
 | | Plugin (Recommended) | Standalone Prompts |
 |-|---------------------|-------------------|
-| **Install** | `claude plugin add ./shipwright` | Copy 2 files to `~/.claude/prompts/` |
+| **Install** | `git clone` + `claude plugin add ~/shipwright` | `git clone` + copy 2 files to `~/.claude/prompts/` |
 | **Invoke** | `/shipwright:blueprint` | Paste a one-liner into Claude Code |
 | **Skill-aware** | Yes — detects installed plugins, embeds skill recs per session | No — generic prompts only |
 | **Session tracking** | `/shipwright:status` shows progress | Manual (check git log) |
@@ -25,64 +25,13 @@ Pick whichever fits your workflow. Both produce the same quality docs.
 ### Prerequisites
 
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code/overview) installed and working (`claude` command available in terminal)
-- Access to this private repository (you need to be a collaborator or the owner)
-- Authentication set up for GitHub (SSH key or Personal Access Token)
-
-### Authenticating with GitHub (Private Repo)
-
-This is a private repository. You need one of these auth methods configured before cloning:
-
-**Option A: SSH Key (recommended)**
-
-```bash
-# Check if you have an SSH key
-ls ~/.ssh/id_ed25519.pub 2>/dev/null || ls ~/.ssh/id_rsa.pub 2>/dev/null
-
-# If not, generate one
-ssh-keygen -t ed25519 -C "your_email@example.com"
-
-# Copy the public key
-cat ~/.ssh/id_ed25519.pub | pbcopy   # macOS
-cat ~/.ssh/id_ed25519.pub | xclip    # Linux
-
-# Add it to GitHub: Settings → SSH and GPG keys → New SSH key → paste
-# Test it works
-ssh -T git@github.com
-```
-
-**Option B: Personal Access Token (PAT)**
-
-```bash
-# Generate a token: GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)
-# Select scope: repo (full control of private repositories)
-# Copy the token — you'll use it as your password when cloning via HTTPS
-```
 
 ### Install
 
-**Option A: Clone via SSH and install locally (recommended)**
-
 ```bash
-git clone git@github.com:v60samurai/shipwright.git ~/shipwright
-claude plugin add ~/shipwright
-```
-
-**Option B: Clone via HTTPS with PAT**
-
-```bash
-# When prompted for password, paste your Personal Access Token
 git clone https://github.com/v60samurai/shipwright.git ~/shipwright
 claude plugin add ~/shipwright
 ```
-
-**Option C: Clone via HTTPS with token inline**
-
-```bash
-git clone https://<YOUR_PAT>@github.com/v60samurai/shipwright.git ~/shipwright
-claude plugin add ~/shipwright
-```
-
-> **Note:** Replace `<YOUR_PAT>` with your actual Personal Access Token. Do not commit this token anywhere.
 
 ### Verify Installation
 
@@ -163,20 +112,6 @@ Works with any AI coding tool — Claude Code, Cursor, Windsurf, Copilot, or any
 
 ### Install
 
-Since this is a private repo, clone it first (using the same auth method from Route 1), then copy the prompt files:
-
-**Option A: Clone via SSH and copy**
-
-```bash
-git clone git@github.com:v60samurai/shipwright.git ~/shipwright
-
-mkdir -p ~/.claude/prompts
-cp ~/shipwright/phase1-architect.md ~/.claude/prompts/
-cp ~/shipwright/phase2-builder.md ~/.claude/prompts/
-```
-
-**Option B: Clone via HTTPS and copy**
-
 ```bash
 git clone https://github.com/v60samurai/shipwright.git ~/shipwright
 
@@ -185,9 +120,7 @@ cp ~/shipwright/phase1-architect.md ~/.claude/prompts/
 cp ~/shipwright/phase2-builder.md ~/.claude/prompts/
 ```
 
-**Option C: Use directly from the cloned repo**
-
-No need to copy — just reference the full path when invoking:
+Or use directly from the cloned repo without copying:
 
 ```
 Read ~/shipwright/phase1-architect.md and docs/input/. Generate the product blueprint.
@@ -354,7 +287,7 @@ shipwright/
 
 ## Origin
 
-Shipwright was extracted from the doc system that powered [HustlrAI](https://github.com/harshitbadiger) — a Telegram-first CRM built in 10 hours with Claude Code. The Implementation Guide + Session Playbook pattern proved that with the right docs, anyone can build a production-grade app with AI. Shipwright templatizes that approach for any product.
+Shipwright was extracted from the doc system that powered [HustlrAI](https://github.com/v60samurai) — a Telegram-first CRM built in 10 hours with Claude Code. The Implementation Guide + Session Playbook pattern proved that with the right docs, anyone can build a production-grade app with AI. Shipwright templatizes that approach for any product.
 
 ---
 

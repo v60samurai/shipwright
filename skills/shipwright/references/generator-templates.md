@@ -39,7 +39,7 @@ This is the first file Claude Code reads every session. It must contain everythi
 ```markdown
 # CLAUDE.md — {product.name}
 
-> This file is the source of truth for Claude Code. Read it before every session.
+> This file is the project-level Claude Code context. It extends the global CLAUDE.md — only project-specific rules live here. Read it before every session.
 
 ---
 
@@ -122,6 +122,27 @@ This is the first file Claude Code reads every session. It must contain everythi
 ### Aesthetic Direction
 
 {design.aesthetic_direction — references and anti-references.}
+
+---
+
+## Persona File (include only when blueprint has a file-based AI persona)
+
+If the product uses a file-based AI persona (a markdown file loaded as the AI system prompt at runtime), include this section:
+
+```
+## Persona File
+
+The product's AI voice lives in `src/persona/STUDIO.md` (or the path defined in blueprint.persona_file_path).
+
+Do NOT name this file `CLAUDE.md`. That name is reserved for Claude Code developer instructions.
+
+| File | Read by | Purpose |
+|------|---------|---------|
+| `CLAUDE.md` (this file) | Claude Code | Developer context — how to build this project |
+| `src/persona/STUDIO.md` | The deployed app | AI system prompt — what the product sounds like |
+
+These are different files with different purposes. Editing `CLAUDE.md` changes how Claude builds. Editing `STUDIO.md` changes what the product says.
+```
 ```
 
 ---
