@@ -4,155 +4,108 @@ description: "Generate build docs from a Product Blueprint. Run /shipwright:blue
 
 # Phase 2: The Builder
 
-Generate production-grade build docs from the Product Blueprint.
+Generate production-grade build docs from the Product Blueprint by filling in the actual template files.
 
 ## Pre-Check
 
-Verify `docs/product-blueprint.yaml` exists. If not, tell the user to run `/shipwright:blueprint` first.
+Verify `docs/product-blueprint.yaml` exists. If not, tell the user to run `/shipwright:blueprint` first and stop.
 
-Read the blueprint fully. Understand what's being built, who it's for, how it's built, what can go wrong, how it should feel, and how long they have.
+Read `docs/product-blueprint.yaml` fully. Understand everything in it before generating any doc.
 
-## Load Context
+## Load Templates
 
-Read these reference files for templates and quality rules:
-- `${CLAUDE_PLUGIN_ROOT}/skills/shipwright/references/generator-templates.md`
+Read these template files — they are the exact output structure for each doc:
+
+- `${CLAUDE_PLUGIN_ROOT}/skills/shipwright/references/templates/IMPLEMENTATION_GUIDE.md`
+- `${CLAUDE_PLUGIN_ROOT}/skills/shipwright/references/templates/SESSION_PLAYBOOK.md`
+- `${CLAUDE_PLUGIN_ROOT}/skills/shipwright/references/templates/FINAL_PUSH.md`
+
+Also read for skill-aware session generation:
 - `${CLAUDE_PLUGIN_ROOT}/skills/shipwright/references/skill-mapping.md`
+- `docs/.shipwright-skills.json` (if it exists — lists installed plugins for skill recommendations)
 
-Read `docs/.shipwright-skills.json` to know which skills/commands are installed. Only recommend skills that appear in this file.
+## How to Fill Templates
+
+Every `{{PLACEHOLDER}}` in a template must be replaced with a real value derived from the blueprint. Rules:
+
+1. **Never leave a placeholder unfilled.** If the blueprint doesn't have the value, infer it from context or make an opinionated choice.
+2. **Never write placeholder text in the output.** No `{{PRODUCT_NAME}}`, no `TBD`, no `fill this in later`.
+3. **Use actual entity names.** Not "User" and "Item" — the real names from the blueprint.
+4. **Code blocks are copy-paste ready.** Real function signatures, real types, real error handling. Never pseudocode.
+5. **Architecture diagrams use ASCII only.** No image references.
 
 ## Generate Docs (In Order)
 
-Generate each doc sequentially. Each doc may reference previous ones.
-
 ### Doc 1: CLAUDE.md (always)
 
-Write to project root `CLAUDE.md`. This is the first file Claude Code reads every session.
+Write to project root `CLAUDE.md`.
 
-Contents (from generator-templates.md):
-- Product identity from `product.*`
-- Architecture diagram from `architecture.data_flow`
-- Directory structure from `interfaces + features + stack`
-- Tech stack table from `stack.*`
-- Conventions per language (derived from stack choices + best practices)
-- Styling conventions from `design.*`
-- Git conventions from `constraints.team`
-- Environment variables from `env_vars.*`
-- Database summary from `data_model.*`
-- Deferred features from `features.deferred`
-- Design context from `users.*` + `voice.*` + `design.*`
+Structure:
+- What this is: product tagline + 2-3 sentences on what it does, who it's for, how interfaces connect
+- Architecture: ASCII diagram showing all interfaces, data flow, external services
+- Monorepo structure: full directory tree with key files
+- Tech stack table: Layer | Technology | Notes
+- Conventions per language/runtime in the stack
+- Environment variables table per environment
+- Database summary (tables count, ORM, RLS strategy)
+- Deferred features list
+- Design context (users, brand personality, aesthetic direction)
+
+Note at top: "This file is the project-level Claude Code context. It extends the global CLAUDE.md — only project-specific rules live here."
+
+If the blueprint has `design.persona_file_path`, add a Persona File section:
+```
+## Persona File
+[persona_file_path] is the product's AI voice — loaded as the AI system prompt at runtime.
+CLAUDE.md (this file) is the developer context for Claude Code.
+Do not confuse them.
+```
 
 ### Doc 2: Implementation Guide (always)
 
+Read `${CLAUDE_PLUGIN_ROOT}/skills/shipwright/references/templates/IMPLEMENTATION_GUIDE.md`.
+
+Fill every `{{PLACEHOLDER}}` from the blueprint. Key substitutions:
+- `{{PRODUCT_NAME}}` → `product.name`
+- `{{DATE}}` → today's date
+- `{{ARCHITECTURE_SUMMARY}}` → one-line from `architecture.data_flow`
+- `{{STACK_SUMMARY}}` → comma-separated from `stack.*`
+- `{{ARCHITECTURE_DIAGRAM}}` → ASCII diagram from `architecture.data_flow`
+- All `{{INTERFACE_N}}`, `{{BACKEND_LAYER}}`, `{{DATABASE}}` → actual names from blueprint
+- All `{{choice}}` and `{{reason}}` in decision log → actual decisions from `stack.*`
+- All `{{entity}}`, `{{field}}`, `{{type}}` in schema → actual entities from `data_model.*`
+
 Write to `docs/{product.name}-Implementation-Guide.md`.
 
-Contents (from generator-templates.md):
-- Architecture Overview with ASCII diagram
-- Tech Stack table with "Why" column
-- System Design subsections (only include what's relevant):
-  - Staged Pipeline (if multi-step processing)
-  - State Machine (if multi-step flows)
-  - Retry Strategy (if external services)
-  - Input Validation (if user/AI input processing)
-  - JSON Parse Safety (if AI output consumption)
-  - Atomic Persistence (if multi-table writes)
-  - Graceful Degradation table (if external services)
-  - Date/Time Resolution (if scheduling)
-  - State Transitions (if constrained entity states)
-  - Idempotency Guard (if duplicate events possible)
-  - Structured Logging (always for backends)
-  - Rate Limiting (if user-facing input)
-  - Realtime Recovery (if realtime subscriptions)
-- Database Schema with actual DDL/ORM code
-- Build Phases (one per feature cluster)
-- Edge Cases tables (per interface + data)
-- Environment Variables with placeholders
+### Doc 3: Session Playbook (always)
 
-**Quality rules:**
-- Code blocks are copy-paste ready, never pseudocode
-- Every code pattern handles errors
-- Every external service has retry + degradation
-- Every AI integration has validation layer
-- Architecture diagrams use ASCII only
-- Code matches the stack's language idioms
-- Uses actual entity/product names, not generic placeholders
+Read `${CLAUDE_PLUGIN_ROOT}/skills/shipwright/references/templates/SESSION_PLAYBOOK.md`.
 
-### Doc 3: Design System (conditional)
+Fill every `{{PLACEHOLDER}}`. Key additions beyond the template:
 
-Generate only when `design.generate_design_system: true` in blueprint.
+**Session generation:** Create one session per feature cluster from the blueprint, ordered by dependency. Every session must have:
+- An exact Claude Code prompt (copy-paste ready, references specific IG sections by name)
+- A test step with exact commands
+- A commit step with conventional commit message
+- A done-check: specific things that must be true before next session
 
-Write to `docs/{product.name}-Design-System.md`.
-
-Contents (from generator-templates.md):
-- Visual Direction (references, anti-references, mood)
-- Typography system per interface
-- Color token system with actual values
-- Component rules (spacing, borders, radii, shadows, motion, icons)
-- Voice & Copy (personality, tone examples, error messages, empty states)
-- Per-interface rules (mobile touch targets, CLI colors, etc.)
-- Design principles (5-7, derived from user context)
-
-### Doc 4: Session Playbook (always)
+**Skill-aware sessions:** If `docs/.shipwright-skills.json` exists, check `${CLAUDE_PLUGIN_ROOT}/skills/shipwright/references/skill-mapping.md` and embed relevant skill recommendations into each session. Only recommend skills that appear in the JSON file.
 
 Write to `docs/{product.name}-Session-Playbook.md`.
 
-**This is skill-aware.** Read `docs/.shipwright-skills.json` and `${CLAUDE_PLUGIN_ROOT}/skills/shipwright/references/skill-mapping.md` to embed recommendations.
-
-Session generation algorithm:
-```
-Session 1: Database/schema (always first)
-Session 2: Skeleton + connectivity proof
-Sessions 3..N: One feature cluster per session (ordered by dependency)
-  → Checkpoint A after core features work
-Sessions N+1..M: Secondary interfaces
-  → Checkpoint B: full loop test
-Sessions M+1..: Background jobs, integrations
-Session FINAL-1: Polish + edge cases
-Session FINAL: Demo prep + ship
-```
-
-Per-session template:
-```markdown
-## Session X: [Title] ([estimated time])
-
-**Skills for this session:**
-- [Only skills from .shipwright-skills.json that match this session type]
-- [Mapped via skill-mapping.md]
-
-**Read:** [Doc] -> "[Section name]"
-
-**Claude Code prompt:**
-[Exact prompt, copy-paste ready, references specific doc sections by name]
-
-**Test:**
-[Exact commands to verify]
-
-**Commit:**
-[git add + conventional commit message]
-
-**Milestone check:** [What should be true now]
-```
-
-**Quality rules:**
-- Only recommend installed skills (check .shipwright-skills.json)
-- Every session ends with test commands and commit message
-- Deployment checkpoints are gates: "Do not proceed until X works"
-- Time estimates respect constraints.time
-- Hardest session is flagged
-- Session prompts reference doc sections by exact name
-
-### Doc 5: Polish & Ship Guide (conditional)
+### Doc 4: Final Push Guide (conditional)
 
 Generate only when `design.generate_polish_guide: true` in blueprint.
 
-Write to `docs/{product.name}-Polish-Ship-Guide.md`.
+Read `${CLAUDE_PLUGIN_ROOT}/skills/shipwright/references/templates/FINAL_PUSH.md`.
 
-Contents (from generator-templates.md):
-- Demo script with exact steps and timing
-- Seed data (actual data structures, not descriptions)
-- Delight layer per feature
-- Edge state polish (loading, error, empty, offline)
-- Performance targets per interface
-- Ship checklist (security, performance, reliability, UX, meta)
+Fill every `{{PLACEHOLDER}}` with actual product-specific content. Key substitutions:
+- Kill shot demo script: based on `demo.demo_script` from blueprint
+- Seed data: based on `demo.seed_data_description` — write actual data structures
+- Milestone messages: based on product's core loop and `voice.personality`
+- All color/style references: from `design.*` tokens
+
+Write to `docs/{product.name}-Final-Push-Guide.md`.
 
 ## Completion
 
@@ -162,8 +115,7 @@ After generating all docs, tell the user:
 > - `CLAUDE.md`
 > - `docs/{name}-Implementation-Guide.md`
 > - `docs/{name}-Session-Playbook.md`
-> {- `docs/{name}-Design-System.md`}
-> {- `docs/{name}-Polish-Ship-Guide.md`}
+> {- `docs/{name}-Final-Push-Guide.md`}
 >
-> Start building: run `/shipwright:session 1` to load the first session.
+> Next: `/shipwright:session 1` to load the first session and start building.
 > Track progress anytime with `/shipwright:status`.
