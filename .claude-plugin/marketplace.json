@@ -1,0 +1,28 @@
+{
+  "name": "shipwright-local",
+  "description": "Shipwright — production-grade build doc generator",
+  "owner": {
+    "name": "v60samurai"
+  },
+  "plugins": [
+    {
+      "name": "shipwright",
+      "source": "./",
+      "description": "Generate production-grade build docs for any product. Two phases: Blueprint (normalize your idea) and Build (generate Implementation Guide, Session Playbook, Design System, and more).",
+      "version": "1.0.0",
+      "author": {
+        "name": "Harshit Badiger"
+      },
+      "repository": "https://github.com/v60samurai/shipwright",
+      "license": "MIT",
+      "keywords": [
+        "docs",
+        "blueprint",
+        "implementation",
+        "planning",
+        "sessions",
+        "build-docs"
+      ]
+    }
+  ]
+}

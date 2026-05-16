@@ -8,7 +8,7 @@ Shipwright generates detailed implementation docs for any product — from a nap
 
 | | Plugin (Recommended) | Standalone Prompts |
 |-|---------------------|-------------------|
-| **Install** | `git clone` + `claude plugin add ~/shipwright` | `git clone` + copy 2 files to `~/.claude/prompts/` |
+| **Install** | `git clone` + `claude plugin marketplace add` + `claude plugin install shipwright` | `git clone` + copy 2 files to `~/.claude/prompts/` |
 | **Invoke** | `/shipwright:blueprint` | Paste a one-liner into Claude Code |
 | **Skill-aware** | Yes — detects installed plugins, embeds skill recs per session | No — generic prompts only |
 | **Session tracking** | `/shipwright:status` shows progress | Manual (check git log) |
@@ -30,7 +30,8 @@ Pick whichever fits your workflow. Both produce the same quality docs.
 
 ```bash
 git clone https://github.com/v60samurai/shipwright.git ~/shipwright
-claude plugin add ~/shipwright
+claude plugin marketplace add ~/shipwright
+claude plugin install shipwright
 ```
 
 ### Verify Installation
