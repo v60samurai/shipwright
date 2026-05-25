@@ -15,15 +15,16 @@ SKILLS="["
 FIRST_SKILL=true
 
 # Scan plugin cache for skill SKILL.md files
-for skill_md in "$PLUGINS_DIR"/cache/*/skills/*/SKILL.md "$PLUGINS_DIR"/*/skills/*/SKILL.md 2>/dev/null; do
+shopt -s nullglob
+for skill_md in "$PLUGINS_DIR"/cache/*/skills/*/SKILL.md "$PLUGINS_DIR"/*/skills/*/SKILL.md; do
   [ -f "$skill_md" ] || continue
 
-  # Extract skill name from frontmatter
-  skill_name=$(sed -n '/^---$/,/^---$/{ /^name:/{ s/^name: *//; s/ *$//; p; } }' "$skill_md" 2>/dev/null)
+  # Extract skill name from frontmatter (portable awk — works on BSD + GNU)
+  skill_name=$(awk '/^---$/{f++; next} f==1 && /^name:/{sub(/^name:[[:space:]]*/,""); sub(/[[:space:]]+$/,""); print; exit}' "$skill_md" 2>/dev/null)
   [ -z "$skill_name" ] && continue
 
   # Extract description (first 100 chars)
-  skill_desc=$(sed -n '/^---$/,/^---$/{ /^description:/{ s/^description: *//; s/ *$//; p; } }' "$skill_md" 2>/dev/null | head -c 100)
+  skill_desc=$(awk '/^---$/{f++; next} f==1 && /^description:/{sub(/^description:[[:space:]]*/,""); sub(/[[:space:]]+$/,""); gsub(/^"|"$/,""); print; exit}' "$skill_md" 2>/dev/null | head -c 100)
 
   # Determine source plugin
   source_plugin=$(echo "$skill_md" | sed 's|.*/plugins/||' | sed 's|/skills/.*||' | sed 's|cache/||' | sed 's|/[0-9].*||')
@@ -41,7 +42,7 @@ SKILLS="$SKILLS]"
 COMMANDS="["
 FIRST_CMD=true
 
-for cmd_dir in "$PLUGINS_DIR"/cache/*/commands "$PLUGINS_DIR"/*/commands 2>/dev/null; do
+for cmd_dir in "$PLUGINS_DIR"/cache/*/commands "$PLUGINS_DIR"/*/commands; do
   [ -d "$cmd_dir" ] || continue
 
   source_plugin=$(echo "$cmd_dir" | sed 's|.*/plugins/||' | sed 's|/commands.*||' | sed 's|cache/||' | sed 's|/[0-9].*||')
